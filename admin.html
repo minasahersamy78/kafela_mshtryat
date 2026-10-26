@@ -2,7 +2,7 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة تحكم الأدمن - مخزن القافلة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -11,37 +11,52 @@
         .header h1 { margin: 0; font-size: 2.2em; text-shadow: 0 0 10px #10b981; }
         
         #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 50px; background: #1e293b; padding: 40px; border-radius: 15px; border: 1px solid #334155; max-width: 400px; margin-left: auto; margin-right: auto; }
-        #login-screen input { width: 100%; padding: 12px; border: 2px solid #334155; border-radius: 10px; background-color: #0f172a; color: #34d399; font-family: 'Cairo', sans-serif; font-size: 16px; margin-bottom: 15px; text-align: center;}
-        #login-screen button { width: 100%; padding: 15px; background: #10b981; color: #000; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-        #login-screen button:hover { background: #34d399; }
         #login-error { color: #ef4444; display: none; margin-top: 10px; font-weight: bold;}
 
         #admin-content { display: none; }
-        .form-container { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 0 15px rgba(0,0,0,0.5); margin-bottom:20px;}
+        .form-container { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 0 15px rgba(0,0,0,0.5); margin-bottom:20px; width: 100%; box-sizing: border-box;}
         
-        /* جعل الحقول تظهر تحت بعضها بشكل عمودي متناسق في الموبايل والشاشات الصغيرة */
-        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
+        /* استخدام Flexbox للموبايل */
+        .grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; width: 100%; }
+        .grid > div { width: 100%; box-sizing: border-box; }
         
-        /* للشاشات الواسعة (الكمبيوتر) يمكن جعلها عمودين */
+        /* للشاشات الواسعة (الكمبيوتر) */
         @media (min-width: 768px) {
-            .grid { grid-template-columns: 1fr 1fr; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; }
         }
 
-        label { font-weight: 600; color: #34d399; margin-bottom: 5px; display: block; }
-        select, input { width: 100%; padding: 12px; border: 2px solid #334155; border-radius: 10px; background-color: #0f172a; color: #34d399; font-family: 'Cairo', sans-serif; font-size: 16px; box-sizing: border-box; }
+        label { font-weight: 600; color: #34d399; margin-bottom: 5px; display: block; font-size: 0.95em; }
+        
+        /* إجبار الحقول على أخذ مساحة 100% وإلغاء تحجيم الآيفون */
+        select, input { 
+            width: 100%; 
+            display: block;
+            padding: 12px; 
+            border: 2px solid #334155; 
+            border-radius: 10px; 
+            background-color: #0f172a; 
+            color: #34d399; 
+            font-family: 'Cairo', sans-serif; 
+            font-size: 16px; 
+            box-sizing: border-box; 
+            -webkit-appearance: none;
+            appearance: none;
+        }
         select:focus, input:focus { border-color: #10b981; outline: none; }
-        .btn-submit { width: 100%; padding: 15px; background: #10b981; color: #000; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-submit:hover { background: #34d399; }
+        
+        button { width: 100%; padding: 15px; background: #10b981; color: #000; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; display: block; box-sizing: border-box; }
+        button:hover { background: #34d399; }
+        .btn-submit { margin-top: 10px; }
         
         .filter-container { background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;}
         .filter-container label { margin-bottom: 0; white-space: nowrap; }
         
-        .table-container { overflow-x: auto; }
+        .table-container { overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; font-size: 0.9em; }
         th, td { padding: 10px; text-align: center; border-bottom: 1px solid #334155; white-space: nowrap; }
         th { background: #0f172a; color: #10b981; }
         .img-preview { max-width: 50px; max-height: 50px; border-radius: 6px; border: 1px solid #10b981; }
-        .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: bold;}
+        .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; width: auto; font-size: 14px;}
         .btn-delete:hover { background: #dc2626; }
     </style>
 </head>
