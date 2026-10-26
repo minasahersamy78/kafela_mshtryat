@@ -18,21 +18,19 @@
         .btn-submit { width: 100%; padding: 15px; background: #10b981; color: #000; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-submit:hover { background: #34d399; }
         .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-        
-        .filter-container { margin-top: 30px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; display: flex; align-items: center; gap: 15px; }
-        .filter-container label { margin-bottom: 0; white-space: nowrap; }
-        
-        .table-container { margin-top: 15px; overflow-x: auto; }
+        .table-container { margin-top: 30px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid #334155; }
         th { background: #0f172a; color: #10b981; }
         .img-preview { max-width: 60px; max-height: 60px; border-radius: 8px; border: 1px solid #10b981; }
+        .section-title { color: #34d399; margin-bottom: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🛒 تسجيل المشتريات</h1>
+        <p style="margin:0; color:#94a3b8;">جميع البيانات والصور إلزامية</p>
     </div>
 
     <div class="form-container">
@@ -80,28 +78,15 @@
                     <input type="date" id="date" required>
                 </div>
                 <div>
-                    <label>صوره المنتج:</label>
-                    <input type="file" id="image" accept="image/*">
+                    <label>صوره المنتج (إجباري):</label>
+                    <input type="file" id="image" accept="image/*" required>
                 </div>
             </div>
             <button type="submit" class="btn-submit" id="submitBtn">حفظ البيانات</button>
         </form>
     </div>
 
-    <!-- شريط البحث بالقسم -->
-    <div class="filter-container">
-        <label>🔍 عرض المشتريات لقسم:</label>
-        <select id="filterCategory" onchange="renderTable()">
-            <option value="الكل">عرض كل الأقسام</option>
-            <option value="العاب">العاب</option>
-            <option value="اكل خدام">اكل خدام</option>
-            <option value="شنطه الانبا ابرام">شنطه الانبا ابرام</option>
-            <option value="ديكور">ديكور</option>
-            <option value="عمل فني">عمل فني</option>
-            <option value="عمل خدمي">عمل خدمي</option>
-        </select>
-    </div>
-
+    <h3 class="section-title" style="margin-top:30px;">📋 المشتريات التي قمت بإضافتها الآن</h3>
     <div class="table-container">
         <table>
             <thead>
@@ -117,60 +102,33 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="8">⏳ جاري التحميل...</td></tr>
+                <tr><td colspan="8">لم تقم بإضافة أي مشتريات حتى الآن.</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxIwWTzcecYiR3hsFFOJU_zQ5u-7AQoZcbOaQ6EBUHtoqH6dE9ow039FAZtdS5KV4tg1Q/exec';
-
-        let globalData = []; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwC3e24lAC-A6REE52WHVoIK5UH77F7S_lhxrE25YMuwb0OxGvm9tlSe-ZMBNPQ0nvTQw/exec';
+        let sessionData = []; 
 
         document.getElementById('date').valueAsDate = new Date();
 
-        async function loadData() {
-            try {
-                const res = await fetch(scriptURL);
-                const data = await res.json();
-                
-                if (data.error || data.length === 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="8">لا توجد مشتريات مسجلة بعد.</td></tr>';
-                    return;
-                }
-
-                globalData = data.reverse(); 
-                renderTable(); 
-                
-            } catch (error) {
-                console.error(error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="color:red;">⚠️ خطأ في تحميل البيانات.</td></tr>';
-            }
-        }
-
-        function renderTable() {
+        function renderSessionTable() {
             const tbody = document.getElementById('tableBody');
-            const filterValue = document.getElementById('filterCategory').value;
             tbody.innerHTML = '';
 
-            let filteredData = globalData;
-            
-            if (filterValue !== 'الكل') {
-                filteredData = globalData.filter(row => row.category === filterValue);
-            }
-
-            if (!filteredData || filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8">لا توجد مشتريات مسجلة في هذا القسم.</td></tr>';
+            if (sessionData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">لم تقم بإضافة أي مشتريات حتى الآن.</td></tr>';
                 return;
             }
 
-            filteredData.forEach(row => {
-                let imgHtml = (row.image !== 'بدون صورة' && row.image !== '') ? `<a href="${row.image}" target="_blank"><img src="${row.image}" class="img-preview"></a>` : 'بدون صورة';
+            [...sessionData].reverse().forEach(row => {
+                let imgHtml = (row.imageBase64) ? `<img src="data:${row.mimeType};base64,${row.imageBase64}" class="img-preview">` : 'بدون صورة';
                 tbody.innerHTML += `
                     <tr>
                         <td><span style="background:#0f172a; padding:4px 8px; border-radius:5px; border:1px solid #10b981;">${row.category}</span></td>
-                        <td style="color:#34d399; font-weight:bold;">${row.servantName || '-'}</td>
-                        <td><a href="tel:${row.contactNumber}" style="color:#38bdf8; text-decoration:none;">${row.contactNumber || '-'}</a></td>
+                        <td style="color:#34d399; font-weight:bold;">${row.servantName}</td>
+                        <td>${row.contactNumber}</td>
                         <td style="font-weight:bold;">${row.item}</td>
                         <td>${row.qty}</td>
                         <td>${row.unit}</td>
@@ -199,6 +157,7 @@
             try {
                 let file = document.getElementById('image').files[0];
                 let payload = {
+                    action: 'add',
                     category: document.getElementById('category').value,
                     servantName: document.getElementById('servantName').value,
                     contactNumber: document.getElementById('contactNumber').value,
@@ -206,16 +165,10 @@
                     qty: document.getElementById('qty').value,
                     unit: document.getElementById('unit').value,
                     date: document.getElementById('date').value,
-                    imageBase64: null,
-                    mimeType: null,
-                    imageName: null
+                    imageBase64: await getBase64(file),
+                    mimeType: file.type,
+                    imageName: file.name
                 };
-
-                if (file) {
-                    payload.imageBase64 = await getBase64(file);
-                    payload.mimeType = file.type;
-                    payload.imageName = file.name;
-                }
 
                 await fetch(scriptURL, {
                     method: 'POST',
@@ -223,22 +176,19 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
 
+                sessionData.push(payload);
+                renderSessionTable();
                 alert("✅ تم تسجيل المشتريات بنجاح!");
                 document.getElementById('purchaseForm').reset();
                 document.getElementById('date').valueAsDate = new Date(); 
-                document.getElementById('filterCategory').value = "الكل"; 
-                await loadData(); 
                 
             } catch (error) {
                 alert("⚠️ حدث خطأ أثناء الحفظ!");
-                console.error(error);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "حفظ البيانات";
             }
         }
-
-        loadData();
     </script>
 </body>
 </html>
