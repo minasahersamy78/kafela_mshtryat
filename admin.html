@@ -46,7 +46,7 @@
     <div id="login-screen">
         <label style="color:#34d399; font-size:1.2em; margin-bottom:15px;">أدخل كلمة المرور:</label>
         <input type="password" id="adminPass" placeholder="كلمة المرور..." onkeypress="if(event.key === 'Enter') checkPassword()">
-        <button onclick="checkPassword()">تسجيل الدخول</button>
+        <button id="loginBtn" onclick="checkPassword()">تسجيل الدخول</button>
         <div id="login-error">❌ كلمة المرور غير صحيحة</div>
     </div>
 
@@ -145,37 +145,61 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwC3e24lAC-A6REE52WHVoIK5UH77F7S_lhxrE25YMuwb0OxGvm9tlSe-ZMBNPQ0nvTQw/exec';
-        const PASSWORD = 'kafela20'; // 🔴 غير الباسوورد من هنا 🔴
-
+        
         let globalData = []; 
+        let activeToken = ''; // تخزين الباسورد مؤقتاً في الذاكرة بعد الدخول للعمليات
         document.getElementById('date').valueAsDate = new Date();
 
-        function checkPassword() {
+        async function checkPassword() {
             const passInput = document.getElementById('adminPass').value;
-            if(passInput === PASSWORD) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
-                loadData(); 
-            } else {
-                document.getElementById('login-error').style.display = 'block';
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('login-error');
+            
+            btn.innerText = '⏳ جاري التحقق...';
+            btn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            try {
+                // إرسال الباسورد لجوجل للتحقق
+                const res = await fetch(scriptURL + "?pass=" + encodeURIComponent(passInput));
+                const data = await res.json();
+                
+                if (data.error) {
+                    errorMsg.innerText = "❌ " + data.error;
+                    errorMsg.style.display = 'block';
+                } else {
+                    activeToken = passInput; // حفظ الباسورد لاستخدامه في المسح
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('admin-content').style.display = 'block';
+                    
+                    if (data.length === 0) {
+                        document.getElementById('tableBody').innerHTML = '<tr><td colspan="9">لا توجد مشتريات مسجلة بعد.</td></tr>';
+                    } else {
+                        globalData = data.reverse(); 
+                        renderTable(); 
+                    }
+                }
+            } catch (error) {
+                errorMsg.innerText = '⚠️ حدث خطأ في الاتصال بالسيرفر.';
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.innerText = 'تسجيل الدخول';
+                btn.disabled = false;
             }
         }
 
-        async function loadData() {
+        async function loadDataAfterAction() {
             try {
-                const res = await fetch(scriptURL);
+                const res = await fetch(scriptURL + "?pass=" + encodeURIComponent(activeToken));
                 const data = await res.json();
-                
                 if (data.error || data.length === 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="9">لا توجد مشتريات مسجلة بعد.</td></tr>';
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="9">لا توجد بيانات.</td></tr>';
                     return;
                 }
-
                 globalData = data.reverse(); 
                 renderTable(); 
-                
             } catch (error) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" style="color:red;">⚠️ خطأ في تحميل البيانات.</td></tr>';
+                console.error(error);
             }
         }
 
@@ -222,13 +246,14 @@
             btn.disabled = true;
 
             try {
+                // إرسال الباسورد مع طلب المسح للتأكيد
                 await fetch(scriptURL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'delete', row: rowNum }),
+                    body: JSON.stringify({ action: 'delete', row: rowNum, pass: activeToken }),
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
                 alert('✅ تم المسح بنجاح');
-                loadData(); 
+                loadDataAfterAction(); 
             } catch (e) {
                 alert('⚠️ حدث خطأ أثناء المسح');
                 btn.innerText = originalText;
@@ -281,7 +306,7 @@
                 document.getElementById('purchaseForm').reset();
                 document.getElementById('date').valueAsDate = new Date(); 
                 document.getElementById('filterCategory').value = "الكل";
-                loadData(); 
+                loadDataAfterAction(); 
                 
             } catch (error) {
                 alert("⚠️ حدث خطأ أثناء الحفظ!");
