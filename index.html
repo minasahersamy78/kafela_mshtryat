@@ -130,7 +130,7 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyPq0BHN_rzdMfY9o1CC6GSv2-Ik38EDa2pQvqn3Jnmu3HE9PPxZY_N-uNvQ91A4lT7BQ/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzKw-CBjrPoV6Mf40OL-pC0wVOoVkjbO59BKOzGOgd7QheURj3r3EWvuvWeamsUUbQvwg/exec';
         let sessionData = []; 
 
         document.getElementById('date').valueAsDate = new Date();
@@ -200,7 +200,7 @@
 
                 sessionData.push(payload);
                 renderSessionTable();
-                alert("✅ تم تسجيل المشتريات بنجاح!");
+                alert("✅ تم تسجيل المشتريات وتحديث المخزن بنجاح!");
                 document.getElementById('purchaseForm').reset();
                 document.getElementById('date').valueAsDate = new Date(); 
                 
