@@ -11,18 +11,15 @@
         .header h1 { margin: 0; font-size: 1.8em; text-shadow: 0 0 10px #10b981; }
         .form-container { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 0 15px rgba(0,0,0,0.5); width: 100%; box-sizing: border-box; }
         
-        /* استخدام Flexbox بدلاً من Grid لضمان أخذ العرض بالكامل على الموبايل */
         .grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; width: 100%; }
         .grid > div { width: 100%; box-sizing: border-box; }
         
-        /* للشاشات الواسعة (الكمبيوتر) */
         @media (min-width: 768px) {
             .grid { display: grid; grid-template-columns: 1fr 1fr; }
         }
 
         label { font-weight: 600; color: #34d399; margin-bottom: 5px; display: block; font-size: 0.95em; }
         
-        /* إجبار الحقول على أخذ مساحة 100% وإلغاء تحجيم الآيفون */
         select, input { 
             width: 100%; 
             display: block;
@@ -34,7 +31,7 @@
             font-family: 'Cairo', sans-serif; 
             font-size: 16px; 
             box-sizing: border-box; 
-            -webkit-appearance: none; /* إلغاء تنسيق iOS */
+            -webkit-appearance: none; 
             appearance: none;
         }
         select:focus, input:focus { border-color: #10b981; outline: none; }
@@ -103,7 +100,7 @@
                     <input type="date" id="date" required>
                 </div>
                 <div>
-                    <label>صوره المنتج (إجباري):</label>
+                    <label>صوره المنتج:</label>
                     <input type="file" id="image" accept="image/*" required>
                 </div>
             </div>
