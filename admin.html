@@ -38,7 +38,7 @@ a{color:#38bdf8}
   </div>
   <div id="summary" style="margin:0 0 12px;color:#94a3b8;font-weight:600"></div>
   <div class="wrap"><table>
-    <thead><tr><th>القسم</th><th>المنتج</th><th>الكمية المطلوب شراؤها</th><th>الطالب</th><th>التاريخ</th><th>الصورة</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+    <thead><tr><th>القسم</th><th>المنتج</th><th>الكمية المطلوب شراؤها</th><th>الطالب</th><th>رقم الطالب 📞</th><th>التاريخ</th><th>الصورة</th><th>الحالة</th><th>الإجراء</th></tr></thead>
     <tbody id="body"></tbody>
   </table></div>
 </div>
@@ -85,12 +85,12 @@ function render() {
   const pendingCount = list.filter(r => r.status === 'NEED_PURCHASE').length;
   document.getElementById('summary').textContent = (cat === 'الكل' ? 'كل الأقسام' : 'قسم ' + cat) + ' — طلبات مطلوب شراؤها: ' + pendingCount;
   const body = document.getElementById('body');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="8">لا توجد طلبات شراء.</td></tr>'; return; }
+  if (!list.length) { body.innerHTML = '<tr><td colspan="9">لا توجد طلبات شراء.</td></tr>'; return; }
   body.innerHTML = list.map(r => {
     const img = String(r.image).startsWith('http') ? `<a href="${esc(r.image)}" target="_blank">عرض</a>` : '-';
     const done = r.status === 'PO_CONFIRMED';
     return `<tr><td>${esc(r.category)}</td><td style="font-weight:700">${esc(r.item)}</td>
-      <td>${esc(r.purchase_qty_needed)} ${esc(r.unit)}</td><td>${esc(r.requesterName)}</td><td>${esc(r.date)}</td><td>${img}</td>
+      <td>${esc(r.purchase_qty_needed)} ${esc(r.unit)}</td><td>${esc(r.requesterName)}</td><td>${r.contactNumber ? `<a href="tel:${esc(r.contactNumber)}" style="color:#f8fafc;text-decoration:none">${esc(r.contactNumber)}</a>` : '-'}</td><td>${esc(r.date)}</td><td>${img}</td>
       <td>${done ? '<span class="done">تم الشراء ✅</span>' : '<span class="wait">مطلوب شراؤه ⏳</span>'}</td>
       <td>${done ? '-' : `<button class="ok" onclick="bought(${r.row},this)">تم الشراء ✅</button>`}</td></tr>`;
   }).join('');
