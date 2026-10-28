@@ -81,7 +81,7 @@ th{background:#0f172a;color:#38bdf8;font-weight:700;font-size:1.05em}
 </table></div>
 
 <script>
-const purchaseURL = 'https://script.google.com/macros/s/AKfycbyDo1kZM-rSbIaST73IdeDc3hnr-nza6i3yzoUEImPTUSU9DnIqYDyqyemlNztmb3gUCg/exec';
+const purchaseURL = 'https://script.google.com/macros/s/AKfycbwZOLwntroP8_uXGI2j2z3sGKagwxr3F14MJiIaUF5f6Hly6D0BkosGuo8pJzuv1uZraw/exec';
 const inventoryURL = 'https://script.google.com/macros/s/AKfycbzMZ-4vIawAyFXmcBHsxUauSXIBLD7w27UoFUFuoR0U21nolJgbEAwLNWyAPwPcdAeG0w/exec';
 const DEFAULT_CATS = ['العاب','اكل خدام','شنطه الانبا ابرام','ديكور','عمل فني','عمل خدمي'];
 let inventory = [], sessionData = [];
@@ -189,6 +189,7 @@ async function submitData(e) {
     const result = await (await fetch(purchaseURL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })).json();
     if (errMsg(result)) { alert('⚠️ ' + errMsg(result)); return; }
 
+    if (!result.pending) alert('⚠️ تنبيه: النموذج متصل بنسخة قديمة من السكريبت. برجاء إبلاغ المسؤول.');
     sessionData.push(payload);
     renderSessionTable();
     alert('✅ تم إرسال طلبك بنجاح، وهيتم مراجعته في أقرب وقت. شكراً لك 💙');
