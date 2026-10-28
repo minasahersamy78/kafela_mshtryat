@@ -1,467 +1,109 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>إدارة المشتريات - مخزن القافلة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: #10b981; padding: 15px; max-width: 1000px; margin: auto; box-sizing: border-box; }
-        .header { text-align: center; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; margin-bottom: 25px; border: 1px solid #10b981; }
-        .header h1 { margin: 0; font-size: 2.2em; text-shadow: 0 0 10px #10b981; }
-        
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 50px; background: #1e293b; padding: 40px; border-radius: 15px; border: 1px solid #334155; max-width: 400px; margin-left: auto; margin-right: auto; }
-        #login-error { color: #ef4444; display: none; margin-top: 10px; font-weight: bold;}
-
-        #admin-content { display: none; }
-        .form-container { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 0 15px rgba(0,0,0,0.5); margin-bottom: 25px; width: 100%; box-sizing: border-box;}
-        .form-container h3 { margin-top: 0; color: #10b981; font-size: 1.3em; }
-
-        .grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; width: 100%; }
-        .grid > div { width: 100%; box-sizing: border-box; }
-        
-        @media (min-width: 768px) {
-            .grid { display: grid; grid-template-columns: 1fr 1fr; }
-        }
-
-        label { font-weight: 600; color: #34d399; margin-bottom: 5px; display: block; font-size: 0.95em; }
-        
-        select, input { 
-            width: 100%; display: block; padding: 12px; border: 2px solid #334155; 
-            border-radius: 10px; background-color: #0f172a; color: #34d399; 
-            font-family: 'Cairo', sans-serif; font-size: 16px; box-sizing: border-box; 
-            -webkit-appearance: none; appearance: none;
-        }
-        select:focus, input:focus { border-color: #10b981; outline: none; }
-        
-        button { width: 100%; padding: 15px; background: #10b981; color: #000; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; display: block; box-sizing: border-box; }
-        button:hover { background: #34d399; }
-        .btn-submit { margin-top: 10px; }
-        
-        .filter-container { background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;}
-        .filter-container label { margin-bottom: 0; white-space: nowrap; }
-        
-        .table-container { overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; font-size: 0.9em; }
-        th, td { padding: 10px; text-align: center; border-bottom: 1px solid #334155; white-space: nowrap; }
-        th { background: #0f172a; color: #10b981; }
-        .img-preview { max-width: 50px; max-height: 50px; border-radius: 6px; border: 1px solid #10b981; }
-        
-        .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; width: auto; font-size: 13px;}
-        .btn-delete:hover { background: #dc2626; }
-        
-        .btn-confirm { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; font-size: 13px; width: auto; margin-left: 5px; }
-        .btn-confirm:hover { background: #2563eb; }
-
-        .cat-badge { background: #0f172a; padding: 4px 8px; border-radius: 6px; font-size: 0.85em; border: 1px solid #334155; color: #94a3b8; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة الطلبات - مخزن القافلة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Cairo',sans-serif;background:#0f172a;color:#f8fafc;padding:20px;max-width:1000px;margin:auto}
+h1{color:#38bdf8;text-align:center}
+.box{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px;margin-bottom:20px}
+input{width:100%;padding:12px;border:2px solid #334155;border-radius:12px;background:#0f172a;color:#f8fafc;font:inherit;box-sizing:border-box}
+button{padding:10px 16px;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;color:#fff}
+.ok{background:#10b981}.pri{background:#2563eb}
+.wrap{overflow-x:auto;border:1px solid #334155;border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;text-align:center;border-bottom:1px solid #334155;white-space:nowrap}
+th{background:#0f172a;color:#38bdf8}
+.done{color:#10b981;font-weight:700}.wait{color:#f59e0b;font-weight:700}
+select{padding:10px 14px;border:2px solid #334155;border-radius:12px;background:#0f172a;color:#f8fafc;font:inherit;min-width:180px}
+a{color:#38bdf8}
+</style>
 </head>
 <body>
+<h1>📋 إدارة الطلبات</h1>
 
-    <div class="header">
-        <h1>🛡️ إدارة المشتريات</h1>
-        <p style="margin:5px 0 0; color:#94a3b8;">إدارة المشتريات والبحث في المخزون</p>
-    </div>
+<div class="box" id="login">
+  <input type="password" id="pass" placeholder="كلمة المرور..." onkeypress="if(event.key==='Enter')login()">
+  <button class="pri" style="margin-top:12px;width:100%" onclick="login()">تسجيل الدخول</button>
+  <div id="err" style="color:#ef4444;margin-top:10px"></div>
+</div>
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-screen">
-        <label style="color:#34d399; font-size:1.2em; margin-bottom:15px;">أدخل كلمة المرور:</label>
-        <input type="password" id="adminPass" placeholder="كلمة المرور..." onkeypress="if(event.key === 'Enter') checkPassword()">
-        <button id="loginBtn" onclick="checkPassword()">تسجيل الدخول</button>
-        <div id="login-error">❌ كلمة المرور غير صحيحة</div>
-    </div>
+<div id="app" style="display:none">
+  <div class="box" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <label style="margin:0">القسم: <select id="catFilter" onchange="render()"><option value="الكل">كل الأقسام</option></select></label>
+    <label><input type="checkbox" id="showAll" style="width:auto" onchange="render()"> عرض ما تم شراؤه</label>
+    <button class="pri" onclick="load()" style="margin-right:auto">🔄 تحديث</button>
+  </div>
+  <div id="summary" style="margin:0 0 12px;color:#94a3b8;font-weight:600"></div>
+  <div class="wrap"><table>
+    <thead><tr><th>القسم</th><th>المنتج</th><th>الكمية المطلوب شراؤها</th><th>الطالب</th><th>التاريخ</th><th>الصورة</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+</div>
 
-    <!-- محتوى الأدمن -->
-    <div id="admin-content">
-        <!-- 1. فورم إضافة المشتريات -->
-        <div class="form-container">
-            <h3>➕ إضافة مشتريات (كأدمن)</h3>
-            <form id="purchaseForm" onsubmit="submitData(event)">
-                <div class="grid">
-                    <div>
-                        <label>القسم:</label>
-                        <select id="category" required>
-                            <option value="" disabled selected>اختر القسم...</option>
-                            <option value="العاب">العاب</option>
-                            <option value="اكل خدام">اكل خدام</option>
-                            <option value="شنطه الانبا ابرام">شنطه الانبا ابرام</option>
-                            <option value="ديكور">ديكور</option>
-                            <option value="عمل فني">عمل فني</option>
-                            <option value="عمل خدمي">عمل خدمي</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>اسم الخادم:</label>
-                        <input type="text" id="servantName" placeholder="اسم الخادم..." required>
-                    </div>
-                    <div>
-                        <label>رقم التواصل:</label>
-                        <input type="tel" id="contactNumber" placeholder="رقم الموبايل..." required>
-                    </div>
-                    <div>
-                        <label>المشتريات:</label>
-                        <input type="text" id="item" placeholder="اسم المنتج..." required>
-                    </div>
-                    <div>
-                        <label>الكميه:</label>
-                        <input type="number" id="qty" min="0.1" step="0.1" required>
-                    </div>
-                    <div>
-                        <label>الوحده:</label>
-                        <select id="unit" required>
-                            <option value="" disabled selected>اختر الوحدة...</option>
-                            <option value="قطعه">قطعه</option>
-                            <option value="كيلو">كيلو</option>
-                            <option value="لتر">لتر</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>تاريخ استلام المنتج:</label>
-                        <input type="date" id="date" required>
-                    </div>
-                    <div>
-                        <label>صوره المنتج:</label>
-                        <input type="file" id="image" accept="image/*">
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit" id="submitBtn">حفظ البيانات</button>
-            </form>
-        </div>
+<script>
+// ضع هنا رابط نشر سكربت إدارة الطلبات (orders-script.gs)
+const ordersURL = 'https://script.google.com/macros/s/AKfycbxHfp45pmgQpnjfZTgU2pRamDZ26UmqqSI9cShIgqLDyPaUG44SfkKK7NZdKxUPfbDk/exec';
+let token = '', rows = [];
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const errMsg = r => r && (r.error || (r.status === 'error' ? (r.message || 'خطأ في السيرفر') : ''));
 
-        <!-- 2. قسم الاستعلام والبحث في المخزون -->
-        <div class="form-container">
-            <h3>🔍 الاستعلام والبحث في المخزون الحالي</h3>
-            <div class="grid">
-                <div>
-                    <label>ابحث باسم الصنف:</label>
-                    <input type="text" id="invSearchInput" placeholder="اكتب اسم الصنف للبحث..." oninput="filterInventoryTable()">
-                </div>
-                <div>
-                    <label>تصفية بحسب القسم:</label>
-                    <select id="invCategoryFilter" onchange="filterInventoryTable()">
-                        <option value="الكل">عرض كل الأقسام</option>
-                    </select>
-                </div>
-            </div>
-            <div class="table-container" style="margin-top: 15px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>القسم</th>
-                            <th>اسم الصنف</th>
-                            <th>الكمية الإجمالية</th>
-                            <th>الوحدة</th>
-                            <th>المنصرف</th>
-                            <th>المتبقي</th>
-                        </tr>
-                    </thead>
-                    <tbody id="invTableBody">
-                        <tr><td colspan="6">⏳ جاري تحميل بيانات المخزن...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+async function fetchRows(pass) { return (await fetch(ordersURL + '?pass=' + encodeURIComponent(pass))).json(); }
 
-        <!-- 3. جدول سجل المشتريات -->
-        <h3 style="color:#10b981; font-size:1.3em;">📋 سجل المشتريات المسجلة</h3>
-        <div class="filter-container">
-            <label>🔍 عرض المشتريات لقسم:</label>
-            <select id="filterCategory" onchange="renderTable()">
-                <option value="الكل">عرض كل الأقسام</option>
-                <option value="العاب">العاب</option>
-                <option value="اكل خدام">اكل خدام</option>
-                <option value="شنطه الانبا ابرام">شنطه الانبا ابرام</option>
-                <option value="ديكور">ديكور</option>
-                <option value="عمل فني">عمل فني</option>
-                <option value="عمل خدمي">عمل خدمي</option>
-            </select>
-        </div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>القسم</th>
-                        <th>الخادم</th>
-                        <th>الرقم</th>
-                        <th>المنتج</th>
-                        <th>الكميه</th>
-                        <th>الوحده</th>
-                        <th>التاريخ</th>
-                        <th>الصورة</th>
-                        <th>حالة المخزن</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="10">⏳ جاري تحميل البيانات...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxLGfhKBA_ePk3gv-WwbI3WGKpzk5OBJNiXJk-bT_5ktoHOKcRyZl-N8U89xNLZVoUrog/exec';
-        const inventoryScriptURL = 'https://script.google.com/macros/s/AKfycbwesY-0cZ-Hs1R-HK48n4hLVQK4nPVGjn_nzdbZFCT-ftk3E8s1a4fFnYpMsdLD_L6zXg/exec';
-        
-        let globalData = []; 
-        let inventoryData = [];
-        let activeToken = ''; 
-        document.getElementById('date').valueAsDate = new Date();
-
-        async function checkPassword() {
-            const passInput = document.getElementById('adminPass').value;
-            const btn = document.getElementById('loginBtn');
-            const errorMsg = document.getElementById('login-error');
-            
-            btn.innerText = '⏳ جاري التحقق...';
-            btn.disabled = true;
-            errorMsg.style.display = 'none';
-
-            try {
-                const res = await fetch(scriptURL + "?pass=" + encodeURIComponent(passInput));
-                const data = await res.json();
-                
-                if (data.error) {
-                    errorMsg.innerText = "❌ " + data.error;
-                    errorMsg.style.display = 'block';
-                } else {
-                    activeToken = passInput; 
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('admin-content').style.display = 'block';
-                    
-                    if (data.length === 0) {
-                        document.getElementById('tableBody').innerHTML = '<tr><td colspan="10">لا توجد مشتريات مسجلة بعد.</td></tr>';
-                    } else {
-                        globalData = data.reverse(); 
-                        renderTable(); 
-                    }
-
-                    loadInventoryData();
-                }
-            } catch (error) {
-                errorMsg.innerText = '⚠️ حدث خطأ في الاتصال بالسيرفر.';
-                errorMsg.style.display = 'block';
-            } finally {
-                btn.innerText = 'تسجيل الدخول';
-                btn.disabled = false;
-            }
-        }
-
-        async function loadInventoryData() {
-            try {
-                const res = await fetch(inventoryScriptURL);
-                inventoryData = await res.json();
-
-                const catSelect = document.getElementById('invCategoryFilter');
-                catSelect.innerHTML = '<option value="الكل">عرض كل الأقسام</option>';
-                const categories = new Set();
-
-                inventoryData.forEach(item => {
-                    if (item.sheet) categories.add(item.sheet);
-                });
-
-                categories.forEach(cat => {
-                    catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
-                });
-
-                filterInventoryTable();
-            } catch (e) {
-                document.getElementById('invTableBody').innerHTML = '<tr><td colspan="6" style="color:#ef4444;">⚠️ حدث خطأ أثناء تحميل بيانات المخزن.</td></tr>';
-            }
-        }
-
-        function filterInventoryTable() {
-            const tbody = document.getElementById('invTableBody');
-            const searchText = document.getElementById('invSearchInput').value.trim().toLowerCase();
-            const catFilter = document.getElementById('invCategoryFilter').value;
-
-            tbody.innerHTML = '';
-
-            let filtered = inventoryData.filter(item => {
-                const matchesSearch = item.item ? item.item.toLowerCase().includes(searchText) : false;
-                const matchesCat = (catFilter === 'الكل' || item.sheet === catFilter);
-                return matchesSearch && matchesCat;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">لا توجد نتائج مطابقة لجميع شروط البحث.</td></tr>';
-                return;
-            }
-
-            filtered.forEach(item => {
-                let isWarning = item.remaining <= 0 ? 'color: #ef4444; font-weight: bold;' : '';
-                tbody.innerHTML += `
-                    <tr>
-                        <td><span class="cat-badge">${item.sheet}</span></td>
-                        <td style="font-weight: 600;">${item.item}</td>
-                        <td>${item.quantity}</td>
-                        <td>${item.unit}</td>
-                        <td style="color: #ef4444;">${item.issued}</td>
-                        <td style="font-size: 1.1em; ${isWarning}">${item.remaining}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function loadDataAfterAction() {
-            try {
-                const res = await fetch(scriptURL + "?pass=" + encodeURIComponent(activeToken));
-                const data = await res.json();
-                if (data.error || data.length === 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="10">لا توجد بيانات.</td></tr>';
-                    return;
-                }
-                globalData = data.reverse(); 
-                renderTable(); 
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            const filterValue = document.getElementById('filterCategory').value;
-            tbody.innerHTML = '';
-
-            let filteredData = globalData;
-            if (filterValue !== 'الكل') {
-                filteredData = globalData.filter(row => row.category === filterValue);
-            }
-
-            if (!filteredData || filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10">لا توجد مشتريات مسجلة في هذا القسم.</td></tr>';
-                return;
-            }
-
-            filteredData.forEach(row => {
-                let imgHtml = (row.image !== 'بدون صورة' && row.image !== '') ? `<a href="${row.image}" target="_blank"><img src="${row.image}" class="img-preview"></a>` : 'بدون صورة';
-                
-                let isAdded = row.status === 'تمت الإضافة للمخزن ✅';
-                let statusHtml = isAdded 
-                    ? `<span style="color:#34d399; font-weight:bold; font-size:0.9em;">تمت الإضافة ✅</span>` 
-                    : `<button class="btn-confirm" onclick="confirmPurchase(${row.row}, this)">تأكيد وإضافة 📦</button>`;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td><span style="background:#0f172a; padding:4px 8px; border-radius:5px; border:1px solid #10b981;">${row.category}</span></td>
-                        <td style="color:#34d399; font-weight:bold;">${row.servantName || '-'}</td>
-                        <td>${row.contactNumber || '-'}</td>
-                        <td style="font-weight:bold;">${row.item}</td>
-                        <td>${row.qty}</td>
-                        <td>${row.unit}</td>
-                        <td>${row.date}</td>
-                        <td>${imgHtml}</td>
-                        <td>${statusHtml}</td>
-                        <td>
-                            <button class="btn-delete" onclick="deleteRecord(${row.row}, this)">مسح 🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function confirmPurchase(rowNum, btn) {
-            if(!confirm('📦 هل تم بالفعل شراء واستلام هذا المنتج وتريد إضافته للمخزن؟')) return;
-
-            let originalText = btn.innerText;
-            btn.innerText = '⏳';
-            btn.disabled = true;
-
-            try {
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'confirmAndAdd', row: rowNum, pass: activeToken }),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                });
-                alert('✅ تم تأكيد الشراء وإضافة الكمية للمخزن بنجاح!');
-                loadDataAfterAction(); 
-                loadInventoryData();
-            } catch (e) {
-                alert('⚠️ حدث خطأ أثناء تأكيد الشراء!');
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        async function deleteRecord(rowNum, btn) {
-            if(!confirm('⚠️ هل أنت متأكد أنك تريد مسح هذا المنتج نهائياً من الشيت؟')) return;
-            
-            let originalText = btn.innerText;
-            btn.innerText = '⏳';
-            btn.disabled = true;
-
-            try {
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'delete', row: rowNum, pass: activeToken }),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                });
-                alert('✅ تم المسح بنجاح');
-                loadDataAfterAction(); 
-                loadInventoryData();
-            } catch (e) {
-                alert('⚠️ حدث خطأ أثناء المسح');
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        function getBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        async function submitData(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "⏳ جاري الحفظ...";
-
-            try {
-                let file = document.getElementById('image').files[0];
-                let payload = {
-                    action: 'add',
-                    category: document.getElementById('category').value,
-                    servantName: document.getElementById('servantName').value,
-                    contactNumber: document.getElementById('contactNumber').value,
-                    item: document.getElementById('item').value,
-                    qty: document.getElementById('qty').value,
-                    unit: document.getElementById('unit').value,
-                    date: document.getElementById('date').value,
-                    imageBase64: null, mimeType: null, imageName: null
-                };
-
-                if (file) {
-                    payload.imageBase64 = await getBase64(file);
-                    payload.mimeType = file.type;
-                    payload.imageName = file.name;
-                }
-
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                });
-
-                alert("✅ تم تسجيل طلب الشراء بنجاح! يرجى تأكيده لاحقاً لإضافته للمخزن.");
-                document.getElementById('purchaseForm').reset();
-                document.getElementById('date').valueAsDate = new Date(); 
-                document.getElementById('filterCategory').value = "الكل";
-                loadDataAfterAction(); 
-                loadInventoryData();
-                
-            } catch (error) {
-                alert("⚠️ حدث خطأ أثناء الحفظ!");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "حفظ البيانات";
-            }
-        }
-    </script>
+async function login() {
+  const p = document.getElementById('pass').value, err = document.getElementById('err');
+  err.innerText = '';
+  if (!ordersURL.startsWith('http')) { err.innerText = '⚠️ لم يتم وضع رابط السكربت في الصفحة'; return; }
+  try {
+    const data = await fetchRows(p);
+    if (errMsg(data)) { err.innerText = '❌ ' + errMsg(data); return; }
+    token = p; rows = Array.isArray(data) ? data.reverse() : [];
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    render();
+  } catch (e) { err.innerText = '⚠️ تعذر الاتصال بالسيرفر (' + e.message + ')'; }
+}
+async function load() {
+  try { const d = await fetchRows(token); rows = Array.isArray(d) ? d.reverse() : []; render(); } catch (e) { alert('⚠️ تعذر التحديث'); }
+}
+function fillCategories() {
+  const sel = document.getElementById('catFilter'), cur = sel.value;
+  const pending = {};
+  rows.forEach(r => { if (r.status === 'NEED_PURCHASE') pending[r.category] = (pending[r.category] || 0) + 1; });
+  const cats = [...new Set(rows.map(r => r.category))];
+  sel.innerHTML = '<option value="الكل">كل الأقسام</option>' +
+    cats.map(c => `<option value="${esc(c)}">${esc(c)} (${pending[c] || 0})</option>`).join('');
+  sel.value = cats.includes(cur) ? cur : 'الكل';
+}
+function render() {
+  fillCategories();
+  const all = document.getElementById('showAll').checked;
+  const cat = document.getElementById('catFilter').value;
+  const list = rows.filter(r => (all || r.status === 'NEED_PURCHASE') && (cat === 'الكل' || r.category === cat));
+  const pendingCount = list.filter(r => r.status === 'NEED_PURCHASE').length;
+  document.getElementById('summary').textContent = (cat === 'الكل' ? 'كل الأقسام' : 'قسم ' + cat) + ' — طلبات مطلوب شراؤها: ' + pendingCount;
+  const body = document.getElementById('body');
+  if (!list.length) { body.innerHTML = '<tr><td colspan="8">لا توجد طلبات شراء.</td></tr>'; return; }
+  body.innerHTML = list.map(r => {
+    const img = String(r.image).startsWith('http') ? `<a href="${esc(r.image)}" target="_blank">عرض</a>` : '-';
+    const done = r.status === 'PO_CONFIRMED';
+    return `<tr><td>${esc(r.category)}</td><td style="font-weight:700">${esc(r.item)}</td>
+      <td>${esc(r.purchase_qty_needed)} ${esc(r.unit)}</td><td>${esc(r.requesterName)}</td><td>${esc(r.date)}</td><td>${img}</td>
+      <td>${done ? '<span class="done">تم الشراء ✅</span>' : '<span class="wait">مطلوب شراؤه ⏳</span>'}</td>
+      <td>${done ? '-' : `<button class="ok" onclick="bought(${r.row},this)">تم الشراء ✅</button>`}</td></tr>`;
+  }).join('');
+}
+async function bought(row, btn) {
+  if (!confirm('تأكيد: تم شراء هذه الكمية؟ (ستُورَّد للمخزن وتُصرف مباشرة للطلب)')) return;
+  btn.disabled = true;
+  try {
+    const r = await (await fetch(ordersURL, { method: 'POST', body: JSON.stringify({ action: 'markPurchased', row, pass: token }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })).json();
+    if (errMsg(r)) alert('⚠️ ' + errMsg(r));
+    await load();
+  } catch (e) { alert('⚠️ حدث خطأ'); btn.disabled = false; }
+}
+</script>
 </body>
 </html>
