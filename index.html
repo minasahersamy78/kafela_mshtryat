@@ -34,8 +34,8 @@ th{background:#0f172a;color:#38bdf8;font-weight:700;font-size:1.05em}
 <body>
 <div class="header">
   <div class="logo-container"><img src="logo.jpg" alt="شعار القافلة" onerror="this.style.display='none';"></div>
-  <h1>🛒 تسجيل المشتريات</h1>
-  <p>أسرة الأنبا ابرام - القافلة</p>
+  <h1>🛒 تقديم طلب مشتريات</h1>
+  <p>أهلاً بيكم في أسرة الأنبا ابرام - القافلة 💙</p>
 </div>
 
 <div class="form-container">
@@ -70,14 +70,14 @@ th{background:#0f172a;color:#38bdf8;font-weight:700;font-size:1.05em}
     <div><label>تاريخ طلب المنتج:</label><input type="date" id="date" required></div>
     <div><label>صورة المنتج:</label><input type="file" id="image" accept="image/*" required></div>
   </div>
-  <button type="submit" class="btn-submit" id="submitBtn">حفظ البيانات</button>
+  <button type="submit" class="btn-submit" id="submitBtn">إرسال الطلب</button>
 </form>
 </div>
 
-<h3 class="section-title">📋 المشتريات التي قمت بإضافتها الآن</h3>
+<h3 class="section-title">📋 الطلبات التي أرسلتها الآن</h3>
 <div class="table-container"><table>
-  <thead><tr><th>القسم</th><th>الخادم</th><th>الرقم</th><th>المنتج</th><th>الكمية</th><th>الوحدة</th><th>صُرف من المخزن</th><th>مطلوب شراؤه</th><th>التاريخ</th><th>الصورة</th></tr></thead>
-  <tbody id="tableBody"><tr><td colspan="10">لم تقم بإضافة أي مشتريات حتى الآن.</td></tr></tbody>
+  <thead><tr><th>القسم</th><th>الخادم</th><th>الرقم</th><th>المنتج</th><th>الكمية</th><th>الوحدة</th><th>التاريخ</th><th>الحالة</th><th>الصورة</th></tr></thead>
+  <tbody id="tableBody"><tr><td colspan="9">لم تقم بإرسال أي طلبات حتى الآن.</td></tr></tbody>
 </table></div>
 
 <script>
@@ -132,14 +132,15 @@ function onItemInput() {
   updateHint();
 }
 
+// الرصيد للعلم فقط — لا يتم صرف أي شيء إلا بعد الموافقة
 function updateHint() {
   const hint = document.getElementById('stockHint'), it = currentItem();
   if (!document.getElementById('item').value.trim() || !inventory.length) return;
-  if (!it) { hint.className = 'hint info'; hint.textContent = 'منتج غير موجود في المخزن — سيُسجَّل كطلب شراء كامل.'; return; }
+  if (!it) { hint.className = 'hint info'; hint.textContent = 'منتج غير موجود في المخزن — سيُسجَّل كطلب جديد.'; return; }
   const avail = parseFloat(it.remaining) || 0, q = parseFloat(document.getElementById('qty').value) || 0;
   if (q > avail) {
     hint.className = 'hint warn';
-    hint.textContent = `المتاح في المخزن: ${avail} ${it.unit} — سيُصرف المتاح ويُحوَّل الباقي (${+(q - avail).toFixed(2)}) لطلب شراء.`;
+    hint.textContent = `المتاح حالياً في المخزن: ${avail} ${it.unit} — وهنتواصل معاك بخصوص الباقي 🙏`;
   } else {
     hint.className = 'hint ok';
     hint.textContent = `✅ متاح في المخزن: ${avail} ${it.unit}`;
@@ -148,15 +149,14 @@ function updateHint() {
 
 function renderSessionTable() {
   const tbody = document.getElementById('tableBody');
-  if (!sessionData.length) { tbody.innerHTML = '<tr><td colspan="10">لم تقم بإضافة أي مشتريات حتى الآن.</td></tr>'; return; }
+  if (!sessionData.length) { tbody.innerHTML = '<tr><td colspan="9">لم تقم بإرسال أي طلبات حتى الآن.</td></tr>'; return; }
   tbody.innerHTML = [...sessionData].reverse().map(r => {
     const img = r.imageBase64 ? `<img src="data:${esc(r.mimeType)};base64,${r.imageBase64}" class="img-preview">` : 'بدون صورة';
     return `<tr>
       <td><span style="background:#0f172a;padding:4px 8px;border-radius:6px;border:1px solid #10b981;font-size:.9em">${esc(r.category)}</span></td>
       <td style="color:#38bdf8;font-weight:bold">${esc(r.requesterName)}</td><td>${esc(r.contactNumber)}</td>
       <td style="font-weight:bold">${esc(r.item)}</td><td>${esc(r.qty)}</td><td>${esc(r.unit)}</td>
-      <td>${esc(r.fulfilled)}</td><td style="color:${r.needed > 0 ? '#f59e0b' : '#f8fafc'};font-weight:bold">${esc(r.needed)}</td>
-      <td>${esc(r.date)}</td><td>${img}</td></tr>`;
+      <td>${esc(r.date)}</td><td style="color:#f59e0b;font-weight:bold">بانتظار الموافقة ⏳</td><td>${img}</td></tr>`;
   }).join('');
 }
 
@@ -172,7 +172,7 @@ function getBase64(file) {
 async function submitData(e) {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.innerText = "⏳ جاري الحفظ والتأمين...";
+  btn.disabled = true; btn.innerText = "⏳ جاري إرسال الطلب...";
   try {
     const file = document.getElementById('image').files[0];
     const payload = {
@@ -189,20 +189,18 @@ async function submitData(e) {
     const result = await (await fetch(purchaseURL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })).json();
     if (errMsg(result)) { alert('⚠️ ' + errMsg(result)); return; }
 
-    sessionData.push({ ...payload, fulfilled: result.fulfilled, needed: result.needed });
+    sessionData.push(payload);
     renderSessionTable();
-    alert(result.needed > 0
-      ? `✅ تم صرف المتاح (${result.fulfilled}) من المخزن، وتحويل الباقي (${result.needed}) لطلب شراء.`
-      : `✅ تم صرف كامل الكمية (${result.fulfilled}) من المخزن.`);
+    alert('✅ تم إرسال طلبك بنجاح، وهيتم مراجعته في أقرب وقت. شكراً لك 💙');
     document.getElementById('purchaseForm').reset();
     dateInput.value = localDate;
     document.getElementById('stockHint').className = 'hint info';
     document.getElementById('stockHint').textContent = 'اختر منتجاً من المخزن ليظهر قسمه ووحدته تلقائياً، أو اكتب منتجاً جديداً.';
     loadInventory();
   } catch (error) {
-    alert("⚠️ حدث خطأ أثناء الحفظ!");
+    alert("⚠️ حدث خطأ أثناء إرسال الطلب!");
   } finally {
-    btn.disabled = false; btn.innerText = "حفظ البيانات";
+    btn.disabled = false; btn.innerText = "إرسال الطلب";
   }
 }
 loadInventory();
