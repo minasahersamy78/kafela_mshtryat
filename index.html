@@ -46,7 +46,12 @@
         .qty-input-small { width: 70px; padding: 6px; text-align: center; display: inline-block; }
         
         #cartSection { display: none; border: 2px solid #10b981; }
-        .divider { height: 1px; background: #334155; margin: 30px 0; }
+        
+        /* تنسيقات الرسالة الذكية (الـ Hint) */
+        .hint { margin-top: 8px; font-size: 0.95em; font-weight: 600; min-height: 1.2em; }
+        .hint.ok { color: #10b981; }
+        .hint.warn { color: #f59e0b; }
+        .hint.info { color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -86,29 +91,35 @@
         </div>
     </div>
 
-    <!-- إضافة منتج يدوياً مع الإظهار السريع للمنتجات -->
+    <!-- إضافة منتج يدوياً مع الإظهار السريع للمنتجات والرسالة الذكية -->
     <div class="card">
-        <h2>➕ 3. طلب منتج غير متوفر (مشتريات جديدة)</h2>
+        <h2>➕ 3. طلب منتج ذكي (مشتريات أو مخزن)</h2>
         <div class="grid-3">
             <div>
                 <label>القسم:</label>
-                <select id="manualCategory" onchange="updateManualItemList()">
+                <select id="manualCategory" onchange="updateManualItemList(); updateManualHint();">
                     <option value="" disabled selected>اختر القسم...</option>
                 </select>
             </div>
             <div>
                 <label>المنتج:</label>
-                <input type="text" id="manualItem" list="manualItemList" placeholder="اكتب أو اختر المنتج..." oninput="autoFillManualUnit()">
+                <input type="text" id="manualItem" list="manualItemList" placeholder="اكتب أو اختر المنتج..." oninput="onManualItemInput()" autocomplete="off">
                 <datalist id="manualItemList"></datalist>
+                <!-- الرسالة الذكية للرصيد -->
+                <div class="hint info" id="manualStockHint">⏳ جاري تحميل أصناف المخزن...</div>
             </div>
             <div>
                 <label>الوحدة:</label>
-                <select id="manualUnit">
+                <select id="manualUnit" onchange="updateManualHint()">
+                    <option value="" disabled selected>اختر الوحدة...</option>
                     <option value="قطعه">قطعه</option><option value="كيلو">كيلو</option><option value="لتر">لتر</option>
                     <option value="كيس">كيس</option><option value="علبة">علبة</option><option value="لفة">لفة</option>
                 </select>
             </div>
-            <div><label>الكمية:</label><input type="number" id="manualQty" min="0.1" step="0.1" placeholder="0"></div>
+            <div>
+                <label>الكمية:</label>
+                <input type="number" id="manualQty" min="0.1" step="0.1" placeholder="0" oninput="updateManualHint()">
+            </div>
             <div><label>تاريخ الاستخدام:</label><input type="date" id="manualDate"></div>
             <div><label>صورة (اختياري):</label><input type="file" id="manualImage" accept="image/*"></div>
         </div>
@@ -140,6 +151,9 @@
 
         const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         
+        // دوال المساعدة لتنظيف النصوص والمقارنة باللغة العربية
+        const norm = t => String(t || '').trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه');
+        
         // ضبط تاريخ اليوم
         const todayDate = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
         document.getElementById('manualDate').value = todayDate;
@@ -158,12 +172,18 @@
                 
                 cats.forEach(c => {
                     fCat.innerHTML += `<option value="${esc(c)}">${esc(c)}</option>`;
-                    mCat.innerHTML += `<option value="${esc(c)}">${esc(c)}</option>`;
+                    // منع تكرار إضافة القسم في القائمة المنسدلة اليدوية
+                    if (![...mCat.options].some(o => o.value === c)) {
+                        mCat.innerHTML += `<option value="${esc(c)}">${esc(c)}</option>`;
+                    }
                 });
                 
+                document.getElementById('manualStockHint').textContent = 'اختر منتجاً من المخزن ليظهر قسمه ووحدته تلقائياً، أو اكتب منتجاً جديداً.';
+                updateManualItemList();
                 renderInventoryTable();
             } catch (e) {
                 document.getElementById('inventoryTableBody').innerHTML = '<tr><td colspan="6" style="color: #ef4444;">⚠️ تعذر تحميل بيانات المخزن.</td></tr>';
+                document.getElementById('manualStockHint').textContent = '⚠️ تعذر تحميل المخزن، يمكنك إدخال البيانات يدوياً.';
             }
         }
 
@@ -197,7 +217,10 @@
             }).join('');
         }
 
-        // تحديث قائمة المنتجات السريعة (Datalist) عند اختيار القسم
+        /* -----------------------------------------------------
+           نظام الاختيار الذكي (Smart Selection System) 
+           ----------------------------------------------------- */
+
         function updateManualItemList() {
             const cat = document.getElementById('manualCategory').value;
             const datalist = document.getElementById('manualItemList');
@@ -209,27 +232,61 @@
             });
         }
 
-        // التعبئة التلقائية للوحدة عند اختيار منتج معروف من القائمة المنسدلة
-        function autoFillManualUnit() {
+        function currentManualItem() {
+            const name = norm(document.getElementById('manualItem').value);
             const cat = document.getElementById('manualCategory').value;
-            const itemName = document.getElementById('manualItem').value.trim().toLowerCase();
-            const unitSelect = document.getElementById('manualUnit');
-            
-            const found = globalInventory.find(i => (cat ? i.sheet === cat : true) && String(i.item).toLowerCase() === itemName);
-            if (found) {
-                if (!cat) {
-                    document.getElementById('manualCategory').value = found.sheet;
-                    updateManualItemList();
-                }
+            const m = globalInventory.filter(i => norm(i.item) === name);
+            return m.find(i => i.sheet === cat) || m[0] || null;
+        }
+
+        function onManualItemInput() {
+            const it = currentManualItem();
+            if (it) {
+                document.getElementById('manualCategory').value = it.sheet;
+                updateManualItemList();
                 
-                // إضافة الوحدة إذا لم تكن موجودة واختيارها
-                let optionExists = [...unitSelect.options].some(o => o.value === found.unit);
-                if (!optionExists && found.unit) {
-                    unitSelect.innerHTML += `<option value="${esc(found.unit)}">${esc(found.unit)}</option>`;
+                const u = document.getElementById('manualUnit');
+                let optionExists = [...u.options].some(o => o.value === it.unit);
+                if (!optionExists && it.unit) {
+                    u.innerHTML += `<option value="${esc(it.unit)}">${esc(it.unit)}</option>`;
                 }
-                unitSelect.value = found.unit;
+                u.value = it.unit;
+            }
+            updateManualHint();
+        }
+
+        function updateManualHint() {
+            const hint = document.getElementById('manualStockHint');
+            const itemName = document.getElementById('manualItem').value.trim();
+
+            if (!itemName || !globalInventory.length) {
+                hint.className = 'hint info';
+                hint.textContent = globalInventory.length ? 'اختر منتجاً من المخزن ليظهر قسمه ووحدته تلقائياً، أو اكتب منتجاً جديداً.' : '⏳ جاري التحميل...';
+                return;
+            }
+
+            const it = currentManualItem();
+            if (!it) {
+                hint.className = 'hint info';
+                hint.textContent = 'منتج غير موجود في المخزن — سيُسجَّل كطلب جديد.';
+                return;
+            }
+
+            const avail = parseFloat(it.remaining) || 0;
+            const q = parseFloat(document.getElementById('manualQty').value) || 0;
+
+            if (q > avail) {
+                hint.className = 'hint warn';
+                hint.textContent = `المتاح حالياً في المخزن: ${avail} ${it.unit} — وهنتواصل معاك بخصوص الباقي 🙏`;
+            } else {
+                hint.className = 'hint ok';
+                hint.textContent = `✅ متاح في المخزن: ${avail} ${it.unit}`;
             }
         }
+
+        /* -----------------------------------------------------
+           إضافة الطلبات وعربة التسوق 
+           ----------------------------------------------------- */
 
         function addToCartFromInventory(idx, category, item, unit) {
             const qtyInput = document.getElementById(`quickQty_${idx}`);
@@ -285,6 +342,7 @@
             document.getElementById('manualQty').value = '';
             document.getElementById('manualImage').value = '';
             
+            updateManualHint(); // إعادة الرسالة الذكية للوضع الافتراضي
             updateCartUI();
         }
 
