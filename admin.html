@@ -23,7 +23,6 @@ tbody tr:hover{background:rgba(51,65,85,.45)}
 .badge{padding:4px 10px;border-radius:8px;font-size:.86em;font-weight:700;display:inline-block}
 .st-done{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.4)}
 .st-wait{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.4)}
-.st-pend{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.4)}
 .st-rej{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.4)}
 .day-badge{background:#0f172a;border:1px solid #3b82f6;color:#93c5fd;padding:3px 9px;border-radius:8px;font-size:.85em;font-weight:600}
 select{padding:10px 14px;border:2px solid #334155;border-radius:12px;background:#0f172a;color:#f8fafc;font:inherit;min-width:170px}
@@ -45,13 +44,10 @@ a{color:#38bdf8;text-decoration:none}
   <div class="box filters">
     <label>الحالة:
       <select id="statusFilter" onchange="render()">
-        <option value="ACTIVE">النشطة (مطلوب شراؤه + بانتظار الموافقة)</option>
-        <option value="NEED_PURCHASE">مطلوب شراؤه فقط ⏳</option>
-        <option value="PENDING_APPROVAL">بانتظار الموافقة فقط 🕒</option>
+        <option value="NEED_PURCHASE">مطلوب شراؤه ⏳</option>
         <option value="PO_CONFIRMED">تم الشراء ✅</option>
-        <option value="FULFILLED">مصروف من المخزن 📦</option>
-        <option value="REJECTED">مرفوض / ملغي ❌</option>
-        <option value="ALL">عرض جميع الحالات</option>
+        <option value="REJECTED">ملغي ❌</option>
+        <option value="ALL">الكل</option>
       </select>
     </label>
     <label>اليوم:
@@ -110,20 +106,18 @@ function parseRequester(raw) {
   return { day: 'غير محدد', name: str || '-' };
 }
 
+// توحيد الحالات إلى 3 حالات فقط: مطلوب شراؤه، تم الشراء، ملغي
+function normalizeStatus(status) {
+  if (status === 'REJECTED' || status === 'CANCELLED') return 'REJECTED';
+  if (status === 'PO_CONFIRMED' || status === 'FULFILLED') return 'PO_CONFIRMED';
+  return 'NEED_PURCHASE';
+}
+
 function getStatusBadge(status) {
-  switch (status) {
-    case 'PO_CONFIRMED':
-      return '<span class="badge st-done">تم الشراء ✅</span>';
-    case 'FULFILLED':
-      return '<span class="badge st-done">مصروف من المخزن 📦</span>';
-    case 'PENDING_APPROVAL':
-      return '<span class="badge st-pend">بانتظار الموافقة 🕒</span>';
-    case 'REJECTED':
-      return '<span class="badge st-rej">مرفوض / ملغي ❌</span>';
-    case 'NEED_PURCHASE':
-    default:
-      return '<span class="badge st-wait">مطلوب شراؤه ⏳</span>';
-  }
+  const st = normalizeStatus(status);
+  if (st === 'PO_CONFIRMED') return '<span class="badge st-done">تم الشراء ✅</span>';
+  if (st === 'REJECTED') return '<span class="badge st-rej">ملغي ❌</span>';
+  return '<span class="badge st-wait">مطلوب شراؤه ⏳</span>';
 }
 
 async function fetchRows(pass) {
@@ -183,14 +177,14 @@ function fillFilters() {
   const daySet = new Set();
 
   rows.forEach(r => {
-    const isActionable = r.status === 'NEED_PURCHASE' || r.status === 'PENDING_APPROVAL';
+    const isNeedPurchase = normalizeStatus(r.status) === 'NEED_PURCHASE';
     if (r.category) {
       catSet.add(r.category);
-      if (isActionable) activeByCat[r.category] = (activeByCat[r.category] || 0) + 1;
+      if (isNeedPurchase) activeByCat[r.category] = (activeByCat[r.category] || 0) + 1;
     }
     const parsedDay = r.day || parseRequester(r.requesterName).day;
     daySet.add(parsedDay);
-    if (isActionable) activeByDay[parsedDay] = (activeByDay[parsedDay] || 0) + 1;
+    if (isNeedPurchase) activeByDay[parsedDay] = (activeByDay[parsedDay] || 0) + 1;
   });
 
   const cats = [...catSet];
@@ -212,21 +206,18 @@ function render() {
 
   const list = rows.filter(r => {
     const rDay = r.day || parseRequester(r.requesterName).day;
+    const rStatus = normalizeStatus(r.status);
     const matchCat = (cat === 'الكل' || r.category === cat);
     const matchDay = (day === 'الكل' || rDay === day);
-    let matchStatus = true;
-    if (stFilter === 'ACTIVE') {
-      matchStatus = (r.status === 'NEED_PURCHASE' || r.status === 'PENDING_APPROVAL');
-    } else if (stFilter !== 'ALL') {
-      matchStatus = (r.status === stFilter);
-    }
+    const matchStatus = (stFilter === 'ALL' || rStatus === stFilter);
     return matchCat && matchDay && matchStatus;
   });
 
-  const needPurchaseCount = list.filter(r => r.status === 'NEED_PURCHASE').length;
-  const pendingApprovalCount = list.filter(r => r.status === 'PENDING_APPROVAL').length;
+  const needCount = list.filter(r => normalizeStatus(r.status) === 'NEED_PURCHASE').length;
+  const doneCount = list.filter(r => normalizeStatus(r.status) === 'PO_CONFIRMED').length;
+  const cancelCount = list.filter(r => normalizeStatus(r.status) === 'REJECTED').length;
   document.getElementById('summary').textContent =
-    `المعروض: ${list.length} طلب — مطلوب شراؤه: ${needPurchaseCount} | بانتظار الموافقة: ${pendingApprovalCount}`;
+    `المعروض: ${list.length} طلب — مطلوب شراؤه: ${needCount} | تم الشراء: ${doneCount} | ملغي: ${cancelCount}`;
 
   const body = document.getElementById('body');
   if (!list.length) {
@@ -238,7 +229,7 @@ function render() {
     const parsed = parseRequester(r.requesterName);
     const displayDay = r.day || parsed.day;
     const img = String(r.image || '').startsWith('http') ? `<a href="${esc(r.image)}" target="_blank">عرض 🖼️</a>` : '-';
-    const canConfirmPurchase = (r.status === 'NEED_PURCHASE' || r.status === 'PENDING_APPROVAL');
+    const canConfirmPurchase = (normalizeStatus(r.status) === 'NEED_PURCHASE');
 
     const reqQty = r.requested_qty !== undefined ? r.requested_qty : r.purchase_qty_needed;
     const stockQty = r.fulfilled_from_stock !== undefined ? r.fulfilled_from_stock : 0;
