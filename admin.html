@@ -6,104 +6,284 @@
 <title>إدارة الطلبات - مخزن القافلة</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:'Cairo',sans-serif;background:#0f172a;color:#f8fafc;padding:20px;max-width:1000px;margin:auto}
-h1{color:#38bdf8;text-align:center}
+body{font-family:'Cairo',sans-serif;background:#0f172a;color:#f8fafc;padding:20px;max-width:1200px;margin:auto}
+h1{color:#38bdf8;text-align:center;margin-bottom:20px}
 .box{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px;margin-bottom:20px}
 input{width:100%;padding:12px;border:2px solid #334155;border-radius:12px;background:#0f172a;color:#f8fafc;font:inherit;box-sizing:border-box}
-button{padding:10px 16px;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;color:#fff}
-.ok{background:#10b981}.pri{background:#2563eb}
-.wrap{overflow-x:auto;border:1px solid #334155;border-radius:12px}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #334155;white-space:nowrap}
-th{background:#0f172a;color:#38bdf8}
-.done{color:#10b981;font-weight:700}.wait{color:#f59e0b;font-weight:700}
-select{padding:10px 14px;border:2px solid #334155;border-radius:12px;background:#0f172a;color:#f8fafc;font:inherit;min-width:180px}
-a{color:#38bdf8}
+button{padding:9px 14px;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;color:#fff;transition:.2s}
+button:disabled{opacity:.5;cursor:not-allowed}
+.ok{background:#10b981}.ok:hover{background:#059669}
+.pri{background:#2563eb}.pri:hover{background:#1d4ed8}
+.danger{background:#ef4444}.danger:hover{background:#dc2626}
+.wrap{overflow-x:auto;border:1px solid #334155;border-radius:12px;background:#1e293b}
+table{width:100%;border-collapse:collapse;font-size:.95em}
+th,td{padding:11px 10px;text-align:center;border-bottom:1px solid #334155;white-space:nowrap}
+th{background:#0f172a;color:#38bdf8;font-weight:700}
+tbody tr:hover{background:rgba(51,65,85,.45)}
+.badge{padding:4px 10px;border-radius:8px;font-size:.86em;font-weight:700;display:inline-block}
+.st-done{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.4)}
+.st-wait{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.4)}
+.st-pend{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.4)}
+.st-rej{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.4)}
+.day-badge{background:#0f172a;border:1px solid #3b82f6;color:#93c5fd;padding:3px 9px;border-radius:8px;font-size:.85em;font-weight:600}
+select{padding:10px 14px;border:2px solid #334155;border-radius:12px;background:#0f172a;color:#f8fafc;font:inherit;min-width:170px}
+a{color:#38bdf8;text-decoration:none}
+.filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.filters label{display:flex;align-items:center;gap:8px;font-weight:600;color:#cbd5e1}
 </style>
 </head>
 <body>
-<h1>📋 إدارة الطلبات</h1>
+<h1>📋 إدارة الطلبات والمشتريات - مخزن القافلة</h1>
 
-<div class="box" id="login">
-  <input type="password" id="pass" placeholder="كلمة المرور..." onkeypress="if(event.key==='Enter')login()">
+<div class="box" id="login" style="max-width:450px;margin:40px auto">
+  <input type="password" id="pass" placeholder="كلمة المرور الموحدة..." onkeypress="if(event.key==='Enter')login()">
   <button class="pri" style="margin-top:12px;width:100%" onclick="login()">تسجيل الدخول</button>
-  <div id="err" style="color:#ef4444;margin-top:10px"></div>
+  <div id="err" style="color:#ef4444;margin-top:10px;text-align:center;font-weight:600"></div>
 </div>
 
 <div id="app" style="display:none">
-  <div class="box" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <label style="margin:0">القسم: <select id="catFilter" onchange="render()"><option value="الكل">كل الأقسام</option></select></label>
-    <label><input type="checkbox" id="showAll" style="width:auto" onchange="render()"> عرض ما تم شراؤه</label>
-    <button class="pri" onclick="load()" style="margin-right:auto">🔄 تحديث</button>
+  <div class="box filters">
+    <label>الحالة:
+      <select id="statusFilter" onchange="render()">
+        <option value="ACTIVE">النشطة (مطلوب شراؤه + بانتظار الموافقة)</option>
+        <option value="NEED_PURCHASE">مطلوب شراؤه فقط ⏳</option>
+        <option value="PENDING_APPROVAL">بانتظار الموافقة فقط 🕒</option>
+        <option value="PO_CONFIRMED">تم الشراء ✅</option>
+        <option value="FULFILLED">مصروف من المخزن 📦</option>
+        <option value="REJECTED">مرفوض / ملغي ❌</option>
+        <option value="ALL">عرض جميع الحالات</option>
+      </select>
+    </label>
+    <label>اليوم:
+      <select id="dayFilter" onchange="render()">
+        <option value="الكل">كل الأيام</option>
+      </select>
+    </label>
+    <label>القسم:
+      <select id="catFilter" onchange="render()">
+        <option value="الكل">كل الأقسام</option>
+      </select>
+    </label>
+    <div style="margin-right:auto;display:flex;gap:8px">
+      <button class="pri" onclick="load()">🔄 تحديث</button>
+      <button class="danger" onclick="logout()" title="تسجيل الخروج">خروج</button>
+    </div>
   </div>
+
   <div id="summary" style="margin:0 0 12px;color:#94a3b8;font-weight:600"></div>
-  <div class="wrap"><table>
-    <thead><tr><th>القسم</th><th>المنتج</th><th>الكمية المطلوب شراؤها</th><th>الطالب</th><th>رقم الطالب 📞</th><th>التاريخ</th><th>الصورة</th><th>الحالة</th><th>الإجراء</th></tr></thead>
-    <tbody id="body"></tbody>
-  </table></div>
+
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>اليوم</th>
+          <th>القسم</th>
+          <th>المنتج</th>
+          <th>المطلوب شراؤه</th>
+          <th>تفاصيل الكمية</th>
+          <th>الطالب</th>
+          <th>رقم الطالب 📞</th>
+          <th>التاريخ</th>
+          <th>الصورة</th>
+          <th>الحالة</th>
+          <th>الإجراء</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-// ضع هنا رابط نشر سكربت إدارة الطلبات (orders-script.gs)
 const ordersURL = 'https://script.google.com/macros/s/AKfycbxHfp45pmgQpnjfZTgU2pRamDZ26UmqqSI9cShIgqLDyPaUG44SfkKK7NZdKxUPfbDk/exec';
+const SESSION_KEY = 'kafela_admin_pass';
+
 let token = '', rows = [];
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const errMsg = r => r && (r.error || (r.status === 'error' ? (r.message || 'خطأ في السيرفر') : ''));
 
-async function fetchRows(pass) { return (await fetch(ordersURL + '?pass=' + encodeURIComponent(pass))).json(); }
+// استخراج اليوم واسم الطالب من الصيغة: [اليوم الأول] الاسم
+function parseRequester(raw) {
+  const str = String(raw ?? '').trim();
+  const match = str.match(/^\[([^\]]+)\]\s*(.*)$/);
+  if (match) return { day: match[1].trim(), name: match[2].trim() || '-' };
+  return { day: 'غير محدد', name: str || '-' };
+}
 
-async function login() {
-  const p = document.getElementById('pass').value, err = document.getElementById('err');
+function getStatusBadge(status) {
+  switch (status) {
+    case 'PO_CONFIRMED':
+      return '<span class="badge st-done">تم الشراء ✅</span>';
+    case 'FULFILLED':
+      return '<span class="badge st-done">مصروف من المخزن 📦</span>';
+    case 'PENDING_APPROVAL':
+      return '<span class="badge st-pend">بانتظار الموافقة 🕒</span>';
+    case 'REJECTED':
+      return '<span class="badge st-rej">مرفوض / ملغي ❌</span>';
+    case 'NEED_PURCHASE':
+    default:
+      return '<span class="badge st-wait">مطلوب شراؤه ⏳</span>';
+  }
+}
+
+async function fetchRows(pass) {
+  return (await fetch(ordersURL + '?pass=' + encodeURIComponent(pass))).json();
+}
+
+async function login(savedPass) {
+  const p = savedPass !== undefined ? savedPass : document.getElementById('pass').value;
+  const err = document.getElementById('err');
   err.innerText = '';
   if (!ordersURL.startsWith('http')) { err.innerText = '⚠️ لم يتم وضع رابط السكربت في الصفحة'; return; }
+  if (!p) { err.innerText = '⚠️ أدخل كلمة المرور أولاً'; return; }
   try {
     const data = await fetchRows(p);
-    if (errMsg(data)) { err.innerText = '❌ ' + errMsg(data); return; }
-    token = p; rows = Array.isArray(data) ? data.reverse() : [];
+    if (errMsg(data)) {
+      sessionStorage.removeItem(SESSION_KEY);
+      err.innerText = '❌ ' + errMsg(data);
+      return;
+    }
+    token = p;
+    sessionStorage.setItem(SESSION_KEY, p);
+    rows = Array.isArray(data) ? data.reverse() : [];
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     render();
-  } catch (e) { err.innerText = '⚠️ تعذر الاتصال بالسيرفر (' + e.message + ')'; }
+  } catch (e) {
+    err.innerText = '⚠️ تعذر الاتصال بالسيرفر (' + e.message + ')';
+  }
 }
+
+function logout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  token = '';
+  rows = [];
+  document.getElementById('pass').value = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login').style.display = 'block';
+}
+
 async function load() {
-  try { const d = await fetchRows(token); rows = Array.isArray(d) ? d.reverse() : []; render(); } catch (e) { alert('⚠️ تعذر التحديث'); }
+  try {
+    const d = await fetchRows(token);
+    rows = Array.isArray(d) ? d.reverse() : [];
+    render();
+  } catch (e) {
+    alert('⚠️ تعذر التحديث');
+  }
 }
-function fillCategories() {
-  const sel = document.getElementById('catFilter'), cur = sel.value;
-  const pending = {};
-  rows.forEach(r => { if (r.status === 'NEED_PURCHASE') pending[r.category] = (pending[r.category] || 0) + 1; });
-  const cats = [...new Set(rows.map(r => r.category))];
-  sel.innerHTML = '<option value="الكل">كل الأقسام</option>' +
-    cats.map(c => `<option value="${esc(c)}">${esc(c)} (${pending[c] || 0})</option>`).join('');
-  sel.value = cats.includes(cur) ? cur : 'الكل';
+
+function fillFilters() {
+  const catSel = document.getElementById('catFilter'), curCat = catSel.value;
+  const daySel = document.getElementById('dayFilter'), curDay = daySel.value;
+
+  const activeByCat = {};
+  const activeByDay = {};
+  const catSet = new Set();
+  const daySet = new Set();
+
+  rows.forEach(r => {
+    const isActionable = r.status === 'NEED_PURCHASE' || r.status === 'PENDING_APPROVAL';
+    if (r.category) {
+      catSet.add(r.category);
+      if (isActionable) activeByCat[r.category] = (activeByCat[r.category] || 0) + 1;
+    }
+    const parsedDay = r.day || parseRequester(r.requesterName).day;
+    daySet.add(parsedDay);
+    if (isActionable) activeByDay[parsedDay] = (activeByDay[parsedDay] || 0) + 1;
+  });
+
+  const cats = [...catSet];
+  catSel.innerHTML = '<option value="الكل">كل الأقسام</option>' +
+    cats.map(c => `<option value="${esc(c)}">${esc(c)} (${activeByCat[c] || 0})</option>`).join('');
+  catSel.value = cats.includes(curCat) ? curCat : 'الكل';
+
+  const days = [...daySet];
+  daySel.innerHTML = '<option value="الكل">كل الأيام</option>' +
+    days.map(d => `<option value="${esc(d)}">${esc(d)} (${activeByDay[d] || 0})</option>`).join('');
+  daySel.value = days.includes(curDay) ? curDay : 'الكل';
 }
+
 function render() {
-  fillCategories();
-  const all = document.getElementById('showAll').checked;
+  fillFilters();
+  const stFilter = document.getElementById('statusFilter').value;
   const cat = document.getElementById('catFilter').value;
-  const list = rows.filter(r => (all || r.status === 'NEED_PURCHASE') && (cat === 'الكل' || r.category === cat));
-  const pendingCount = list.filter(r => r.status === 'NEED_PURCHASE').length;
-  document.getElementById('summary').textContent = (cat === 'الكل' ? 'كل الأقسام' : 'قسم ' + cat) + ' — طلبات مطلوب شراؤها: ' + pendingCount;
+  const day = document.getElementById('dayFilter').value;
+
+  const list = rows.filter(r => {
+    const rDay = r.day || parseRequester(r.requesterName).day;
+    const matchCat = (cat === 'الكل' || r.category === cat);
+    const matchDay = (day === 'الكل' || rDay === day);
+    let matchStatus = true;
+    if (stFilter === 'ACTIVE') {
+      matchStatus = (r.status === 'NEED_PURCHASE' || r.status === 'PENDING_APPROVAL');
+    } else if (stFilter !== 'ALL') {
+      matchStatus = (r.status === stFilter);
+    }
+    return matchCat && matchDay && matchStatus;
+  });
+
+  const needPurchaseCount = list.filter(r => r.status === 'NEED_PURCHASE').length;
+  const pendingApprovalCount = list.filter(r => r.status === 'PENDING_APPROVAL').length;
+  document.getElementById('summary').textContent =
+    `المعروض: ${list.length} طلب — مطلوب شراؤه: ${needPurchaseCount} | بانتظار الموافقة: ${pendingApprovalCount}`;
+
   const body = document.getElementById('body');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="9">لا توجد طلبات شراء.</td></tr>'; return; }
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="11" style="padding:25px;color:#94a3b8;">لا توجد طلبات مطابقة للتصفية الحالية.</td></tr>';
+    return;
+  }
+
   body.innerHTML = list.map(r => {
-    const img = String(r.image).startsWith('http') ? `<a href="${esc(r.image)}" target="_blank">عرض</a>` : '-';
-    const done = r.status === 'PO_CONFIRMED';
-    return `<tr><td>${esc(r.category)}</td><td style="font-weight:700">${esc(r.item)}</td>
-      <td>${esc(r.purchase_qty_needed)} ${esc(r.unit)}</td><td>${esc(r.requesterName)}</td><td>${r.contactNumber ? `<a href="tel:${esc(r.contactNumber)}" style="color:#f8fafc;text-decoration:none">${esc(r.contactNumber)}</a>` : '-'}</td><td>${esc(r.date)}</td><td>${img}</td>
-      <td>${done ? '<span class="done">تم الشراء ✅</span>' : '<span class="wait">مطلوب شراؤه ⏳</span>'}</td>
-      <td>${done ? '-' : `<button class="ok" onclick="bought(${r.row},this)">تم الشراء ✅</button>`}</td></tr>`;
+    const parsed = parseRequester(r.requesterName);
+    const displayDay = r.day || parsed.day;
+    const img = String(r.image || '').startsWith('http') ? `<a href="${esc(r.image)}" target="_blank">عرض 🖼️</a>` : '-';
+    const canConfirmPurchase = (r.status === 'NEED_PURCHASE' || r.status === 'PENDING_APPROVAL');
+
+    const reqQty = r.requested_qty !== undefined ? r.requested_qty : r.purchase_qty_needed;
+    const stockQty = r.fulfilled_from_stock !== undefined ? r.fulfilled_from_stock : 0;
+    const qtyDetails = (r.requested_qty !== undefined)
+      ? `طلب: ${esc(reqQty)} | مخزن: ${esc(stockQty)}`
+      : '-';
+
+    return `<tr>
+      <td><span class="day-badge">${esc(displayDay)}</span></td>
+      <td>${esc(r.category)}</td>
+      <td style="font-weight:700">${esc(r.item)}</td>
+      <td style="font-weight:700;color:#f59e0b">${esc(r.purchase_qty_needed)} ${esc(r.unit)}</td>
+      <td style="color:#94a3b8;font-size:.88em">${qtyDetails}</td>
+      <td>${esc(parsed.name)}</td>
+      <td>${r.contactNumber ? `<a href="tel:${esc(r.contactNumber)}" style="color:#f8fafc">${esc(r.contactNumber)}</a>` : '-'}</td>
+      <td>${esc(r.date)}</td>
+      <td>${img}</td>
+      <td>${getStatusBadge(r.status)}</td>
+      <td>${canConfirmPurchase ? `<button class="ok" onclick="bought(${r.row},this)">تم الشراء ✅</button>` : '-'}</td>
+    </tr>`;
   }).join('');
 }
+
 async function bought(row, btn) {
   if (!confirm('تأكيد: تم شراء هذه الكمية؟ (ستُورَّد للمخزن وتُصرف مباشرة للطلب)')) return;
   btn.disabled = true;
   try {
-    const r = await (await fetch(ordersURL, { method: 'POST', body: JSON.stringify({ action: 'markPurchased', row, pass: token }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })).json();
+    const r = await (await fetch(ordersURL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'markPurchased', row, pass: token }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    })).json();
     if (errMsg(r)) alert('⚠️ ' + errMsg(r));
     await load();
-  } catch (e) { alert('⚠️ حدث خطأ'); btn.disabled = false; }
+  } catch (e) {
+    alert('⚠️ حدث خطأ أثناء تحديث حالة الطلب');
+    btn.disabled = false;
+  }
 }
+
+// تسجيل دخول تلقائي إذا كانت كلمة المرور محفوظة في الجلسة الموحدة
+window.addEventListener('DOMContentLoaded', () => {
+  const cachedPass = sessionStorage.getItem(SESSION_KEY);
+  if (cachedPass) login(cachedPass);
+});
 </script>
 </body>
 </html>
